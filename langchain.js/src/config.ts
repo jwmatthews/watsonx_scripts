@@ -1,7 +1,6 @@
-import dotenv from "dotenv";
-import { readFileSync } from "fs";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
+import dotenv from "dotenv";
 
 // Get __dirname equivalent in ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -12,14 +11,12 @@ dotenv.config({ path: resolve(__dirname, "../../.env") });
 
 export interface Config {
   watsonxProjectId: string;
-  watsonxApiUrl: string;
+  ibmCloudApiKey: string;
   defaultModelId: string;
-  accessToken: string;
 }
 
 export function getConfig(): Config {
   const watsonxProjectId = process.env.WATSONX_PROJECT_ID;
-
   if (!watsonxProjectId) {
     throw new Error(
       "WATSONX_PROJECT_ID environment variable not set. " +
@@ -27,27 +24,17 @@ export function getConfig(): Config {
     );
   }
 
-  // Read access token from parent directory
-  let accessToken: string;
-  try {
-    const tokenPath = resolve(__dirname, "../../access_token.txt");
-    accessToken = readFileSync(tokenPath, "utf-8").trim();
-  } catch (error) {
+  const ibmCloudApiKey = process.env.IBMCLOUD_SERVICE_ID_API_KEY;
+  if (!ibmCloudApiKey) {
     throw new Error(
-      "Cannot read access_token.txt. Please run get_access_token.sh first.",
-    );
-  }
-
-  if (!accessToken) {
-    throw new Error(
-      "Access token is empty. Please run get_access_token.sh first.",
+      "IBMCLOUD_SERVICE_ID_API_KEY environment variable not set. " +
+        "Please ensure .env file exists in the parent directory.",
     );
   }
 
   return {
     watsonxProjectId,
-    watsonxApiUrl: "https://us-south.ml.cloud.ibm.com",
+    ibmCloudApiKey,
     defaultModelId: "ibm/granite-13b-instruct-v2",
-    accessToken,
   };
 }

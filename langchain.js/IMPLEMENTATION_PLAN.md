@@ -13,7 +13,7 @@
 - **Language**: TypeScript
 - **UI Framework**: React + Ink (for terminal rendering)
 - **CLI Parsing**: commander or yargs
-- **HTTP Client**: axios or node-fetch
+- **HTTP Client**: @langchain/community (WatsonX integration) + @langchain/core
 - **Build Tool**: tsx or ts-node for development, esbuild/tsc for production builds
 - **Package Manager**: npm or yarn
 
@@ -40,7 +40,8 @@
 - [ ] Install core dependencies:
   - `react` and `ink` for terminal UI
   - `commander` or `yargs` for CLI argument parsing
-  - `axios` for HTTP requests
+  - `@langchain/community` for WatsonX integration
+  - `@langchain/core` for LangChain base functionality
   - `dotenv` for environment variable loading
 - [ ] Install dev dependencies:
   - `typescript`
@@ -59,34 +60,34 @@
   - Validate required environment variables:
     - `WATSONX_PROJECT_ID`
     - `IBMCLOUD_SERVICE_ID_API_KEY`
-  - Define WatsonX API base URL
   - Define default model ID
-- [ ] Create function to read access token from `../access_token.txt`
+  - Export configuration values for use by LangChain WatsonxAI client
 - [ ] Add error handling for missing configuration
 
 ### 3. TypeScript Type Definitions
 - [ ] Create `src/types.ts` with interfaces for:
-  - `WatsonXGenerationRequest`:
-    - `input: string`
-    - `model_id: string`
-    - `project_id: string`
-  - `WatsonXGenerationResponse`:
-    - `generated_text: string`
-    - `token_count?: number`
-    - `stop_reason?: string`
   - `CLIOptions`:
     - `question: string`
     - `model?: string`
+  - `WatsonXConfig`:
+    - `projectId: string`
+    - `apiKey: string`
+    - `defaultModel: string`
+  - Note: LangChain handles WatsonX request/response types internally
 
-### 4. WatsonX API Client
+### 4. WatsonX LangChain Client
 - [ ] Create `src/watsonx-client.ts` module:
   - Export async function `generateText(question: string, modelId: string)`
-  - Implement authentication using Bearer token from `access_token.txt`
-  - Construct request payload matching WatsonX API format
-  - Make POST request to `/ml/v1/text/generation?version=2024-05-31`
-  - Handle HTTP errors and network failures
-  - Parse and return response data
-  - Add TypeScript types for request/response
+  - Import `WatsonxAI` from `@langchain/community/llms/watsonx_ai`
+  - Configure WatsonxAI instance with:
+    - `model_id` parameter
+    - `project_id` from environment variables
+    - `ibmCloudApiKey` from environment variables
+    - `version` set to `2024-05-31`
+  - Use `.invoke()` method to generate text
+  - Handle errors from LangChain client
+  - Return generated text response
+  - Add TypeScript types for function parameters and return values
 
 ### 5. CLI Argument Parsing
 - [ ] Create `src/cli.ts` module:
@@ -149,10 +150,9 @@
 
 ### 9. Error Handling and Validation
 - [ ] Add comprehensive error handling:
-  - Missing or invalid access token
   - Missing environment variables
   - Network errors/timeouts
-  - API errors (4xx, 5xx responses)
+  - LangChain/WatsonX API errors
   - Invalid CLI arguments
 - [ ] Add user-friendly error messages
 - [ ] Add validation for empty questions
@@ -165,7 +165,7 @@
   - Questions with special characters
   - Different model IDs
 - [ ] Test error scenarios:
-  - Missing access token
+  - Missing environment variables
   - Invalid credentials
   - Network failures
 - [ ] Create `README.md` with:
