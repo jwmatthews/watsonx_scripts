@@ -14,11 +14,11 @@ This repo contains scripts and information to help other developers get started 
 ## Usage
 1. `cp sample.env .env`
 1. Edit .env with your `IBMCLOUD_SERVICE_ID_API_KEY` and `WATSONX_PROJECT_ID`
-  * Note that `.env` is set in `.gitignore` to prevent accidental checkin of sensitive information
+    * Note that `.env` is set in `.gitignore` to prevent accidental checkin of sensitive information
 1. Obtain an IAM Token using the API Key by running: `./get_access_token.sh`
-  * Upon successful execution, the token will be written to `./access_token.txt`
-  * This is a short lived JWT we will use to authenticate with WatsonX API
-  * Related info: https://cloud.ibm.com/docs/account?topic=account-iamtoken_from_apikey#iamtoken_from_apikey
+    * Upon successful execution, the token will be written to `./access_token.txt`
+    * This is a short lived JWT we will use to authenticate with WatsonX API
+    * Related info: https://cloud.ibm.com/docs/account?topic=account-iamtoken_from_apikey#iamtoken_from_apikey
 1. Use the JWT with bearer auth in a curl example to prove API access is working
-  * Run: `./test_watsonx_api.sh`
-    * Note: this will use the token from `./access_token.txt` which is good for ~1 hour, then needs to be refreshed.
+    * Run: `./test_watsonx_api.sh`
+        * Note: this will use the token from `./access_token.txt` which is good for ~1 hour, then needs to be refreshed.
