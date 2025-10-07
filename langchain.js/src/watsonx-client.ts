@@ -1,65 +1,26 @@
-import axios, { AxiosError } from 'axios';
-import { getConfig } from './config.js';
-import type {
-  WatsonXGenerationRequest,
-  WatsonXGenerationResponse,
-  GenerationResult,
-} from './types.js';
+import { WatsonxAI } from "@langchain/community/llms/watsonx_ai";
+import { getConfig } from "./config.js";
 
 export async function generateText(
   question: string,
-  modelId: string
-): Promise<GenerationResult> {
+  modelId: string,
+): Promise<string> {
   const config = getConfig();
 
-  const requestPayload: WatsonXGenerationRequest = {
-    input: question,
-    model_id: modelId,
-    project_id: config.watsonxProjectId,
-  };
-
-  const url = `${config.watsonxApiUrl}/ml/v1/text/generation?version=2024-05-31`;
+  const watsonxAI = new WatsonxAI({
+    modelId: modelId,
+    version: "2024-05-31",
+    projectId: config.watsonxProjectId,
+    ibmCloudApiKey: config.ibmCloudApiKey,
+  });
 
   try {
-    const response = await axios.post<WatsonXGenerationResponse>(
-      url,
-      requestPayload,
-      {
-        headers: {
-          'Authorization': `Bearer ${config.accessToken}`,
-          'Content-Type': 'application/json',
-        },
-        timeout: 60000, // 60 second timeout
-      }
-    );
-
-    const result = response.data.results[0];
-
-    return {
-      generatedText: result.generated_text,
-      tokenCount: result.generated_token_count,
-      stopReason: result.stop_reason,
-    };
+    const result = await watsonxAI.invoke(question);
+    return result;
   } catch (error) {
-    if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError;
-
-      if (axiosError.response) {
-        // Server responded with error status
-        throw new Error(
-          `WatsonX API error (${axiosError.response.status}): ${
-            JSON.stringify(axiosError.response.data)
-          }`
-        );
-      } else if (axiosError.request) {
-        // Request made but no response received
-        throw new Error(
-          'Network error: No response from WatsonX API. Please check your connection.'
-        );
-      }
+    if (error instanceof Error) {
+      throw new Error(`WatsonX API error: ${error.message}`);
     }
-
-    // Re-throw other errors
     throw error;
   }
 }
